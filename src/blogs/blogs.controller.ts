@@ -3,20 +3,26 @@ import {
   Get,
   Post,
   Body,
-  // Patch,
+  Patch,
   Param,
   Delete,
+  UseGuards,
+  Req,
 } from '@nestjs/common';
 import { BlogsService } from './blogs.service';
 import { CreateBlogDto } from './dto/create-blog.dto';
+import { AuthGuard } from 'src/auth/auth.guard';
+import { UpdateBlogDto } from './dto/update-blog.dto';
 
 @Controller('blog')
 export class BlogsController {
   constructor(private readonly blogService: BlogsService) {}
 
+  @UseGuards(AuthGuard)
   @Post()
-  create(@Body() createBlogDto: CreateBlogDto) {
-    return this.blogService.createBlog(createBlogDto);
+  create(@Body() createBlogDto: CreateBlogDto, @Req() req) {
+    const token = req.headers.authorization.split(' ')[1]; // Extracting the JWT token from the request headers
+    return this.blogService.createBlog(createBlogDto, token);
   }
 
   @Get()
@@ -25,18 +31,31 @@ export class BlogsController {
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
+  findOne(@Param('id') id: number) {
     return this.blogService.viewBlog(+id);
   }
 
-  // @Patch(':id')
-  // update(@Param('id') id: string, @Body() updateBlogDto: UpdateBlogDto) {
-  //   return this.blogService.updateUser(+id, updateBlogDto);
+  // @Get(':userId/user')
+  // findAllBlogsByUser(@Param('userId') userId: number) {
+  //   return this.blogService.findAllBlogsByUser(userId);
   // }
 
+  @UseGuards(AuthGuard)
+  @Patch(':id')
+  update(
+    @Param('id') id: string,
+    @Body() updateBlogDto: UpdateBlogDto,
+    @Req() req,
+  ) {
+    const token = req.headers.authorization.split(' ')[1];
+    return this.blogService.updateBlog(+id, updateBlogDto, token);
+  }
+
+  @UseGuards(AuthGuard)
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.blogService.removeBlog(+id);
+  remove(@Param('id') id: string, @Req() req) {
+    const token = req.headers.authorization.split(' ')[1];
+    return this.blogService.removeBlog(+id, token);
   }
 }
 

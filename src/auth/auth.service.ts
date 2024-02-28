@@ -22,4 +22,13 @@ export class AuthService {
       access_token: await this.jwtService.signAsync(payload),
     };
   }
+
+  async decodeToken(token: string): Promise<any> {
+    try {
+      const decoded = await this.jwtService.verifyAsync(token);
+      return decoded;
+    } catch (error) {
+      throw new UnauthorizedException('Invalid token');
+    }
+  }
 }
