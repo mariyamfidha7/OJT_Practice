@@ -41,8 +41,6 @@ export class UserController {
     return this.userService.removeUser(+id);
   }
 
-  //'getBooks()' return all the books which are associated with the user
-  // provided through 'userID' by the request
   @Get('blogs')
   getBooks(@Body('userID', ParseIntPipe) userID: number) {
     return this.userService.getBlogsOfUser(userID);

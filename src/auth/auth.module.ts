@@ -23,21 +23,3 @@ import { User } from 'src/user/entities/user.entity';
   exports: [AuthService],
 })
 export class AuthModule {}
-
-// import { Module } from '@nestjs/common';
-// import { UserService } from '../user/user.service';
-// import { JwtModule } from '@nestjs/jwt';
-// import { AuthService } from './auth.service';
-// import { jwtConstants } from './constants';
-
-// @Module({
-//   imports: [
-//     JwtModule.register({
-//       secret: jwtConstants.secret,
-//       signOptions: { expiresIn: '60s' },
-//     }),
-//   ],
-//   providers: [AuthService, UserService], // Ensure UserService is included here
-//   exports: [AuthService], // if AuthService needs to be exported
-// })
-// export class AuthModule {}

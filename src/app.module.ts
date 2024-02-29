@@ -7,6 +7,8 @@ import { User } from './user/entities/user.entity';
 import { AuthModule } from './auth/auth.module';
 import { BlogsModule } from './blogs/blogs.module';
 import { Blog } from './blogs/entities/blog.entity';
+import { TagsModule } from './tags/tags.module';
+import { Tag } from './tags/entities/tag.entity';
 
 @Module({
   imports: [
@@ -16,7 +18,7 @@ import { Blog } from './blogs/entities/blog.entity';
       port: 5432,
       password: 'admin',
       username: 'postgres',
-      entities: [User, Blog], // here we have added user enitity in entities array
+      entities: [User, Blog, Tag],
       database: 'Blog',
       synchronize: true,
       logging: true,
@@ -24,6 +26,7 @@ import { Blog } from './blogs/entities/blog.entity';
     UserModule,
     AuthModule,
     BlogsModule,
+    TagsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

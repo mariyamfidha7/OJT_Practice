@@ -9,7 +9,7 @@ import { CreateBlogDto } from './dto/create-blog.dto';
 import { UpdateBlogDto } from './dto/update-blog.dto';
 import { Blog } from './entities/blog.entity';
 import { JwtService } from '@nestjs/jwt';
-// import { User } from 'src/user/entities/user.entity';
+import { Pagination, paginate } from 'nestjs-typeorm-paginate';
 
 @Injectable()
 export class BlogsService {
@@ -34,8 +34,18 @@ export class BlogsService {
     return this.blogRepository.save(blog);
   }
 
-  findAllBlog(): Promise<Blog[]> {
-    return this.blogRepository.find();
+  async findAllBlog(offset: number): Promise<Pagination<Blog>> {
+    let skip: number = 0;
+    if (offset) {
+      skip = offset;
+    }
+
+    const paginationOptions = {
+      limit: 3,
+      page: Math.floor(skip / 3) + 1,
+    };
+
+    return await paginate<Blog>(this.blogRepository, paginationOptions);
   }
 
   viewBlog(id: number): Promise<Blog> {
@@ -52,10 +62,9 @@ export class BlogsService {
       throw new UnauthorizedException('Invalid token');
     }
 
-    // const blog = await this.blogRepository.findOne({ where: { id } });
     const blog = await this.blogRepository.findOne({
       where: { id },
-      relations: ['createdBy'], // Specify the relation to include
+      relations: ['createdBy'],
     });
 
     if (!blog) {
@@ -68,7 +77,6 @@ export class BlogsService {
       );
     }
 
-    // Perform partial update based on fields provided in the DTO
     if (updateBlogDto.title !== undefined) {
       blog.title = updateBlogDto.title;
     }
@@ -87,7 +95,7 @@ export class BlogsService {
 
     const blog = await this.blogRepository.findOne({
       where: { id },
-      relations: ['createdBy'], // Specify the relation to include
+      relations: ['createdBy'],
     });
 
     if (!blog) {
@@ -113,7 +121,6 @@ export class BlogsService {
   }
 
   async getAllBlogs(): Promise<Blog[]> {
-    // const user: UserEntity = await UserEntity.findOne({where: {id: 2}, relations: ['books']});
     return this.blogRepository.find();
   }
 
