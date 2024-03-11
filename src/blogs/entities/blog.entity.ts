@@ -1,13 +1,5 @@
-import {
-  Entity,
-  PrimaryGeneratedColumn,
-  Column,
-  ManyToOne,
-  ManyToMany,
-  JoinTable,
-} from 'typeorm';
-import { User } from 'src/user/entities/user.entity';
-import { Tag } from 'src/tags/entities/tag.entity';
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne } from 'typeorm';
+import { User } from '../../user/entities/user.entity';
 
 @Entity()
 export class Blog {
@@ -20,10 +12,9 @@ export class Blog {
   @Column()
   description: string;
 
+  @Column()
+  tags: string;
+
   @ManyToOne(() => User, (user) => user.blogs)
   createdBy: User;
-
-  @ManyToMany(() => Tag)
-  @JoinTable()
-  tags: Tag[];
 }

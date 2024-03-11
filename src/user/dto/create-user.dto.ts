@@ -1,49 +1,32 @@
 import {
-  IsAlphanumeric,
   IsEmail,
   IsEnum,
   IsInt,
   IsNotEmpty,
   IsString,
-  Matches,
   MinLength,
 } from 'class-validator';
 
-const passwordRegEx =
-  /^(?=.*[a-z])(?=.*[A-Z])(?=.*d)(?=.*[@$!%*?&])[A-Za-zd@$!%*?&]{8,20}$/;
-
 export class CreateUserDto {
-  @IsString()
-  @MinLength(2, { message: 'Name must have atleast 2 characters.' })
-  @IsNotEmpty()
+  @IsString({ message: 'Name should be a string.' })
+  @IsNotEmpty({ message: 'Name cannot be empty.' })
   name: string;
 
-  @IsNotEmpty()
+  @IsNotEmpty({ message: 'Username cannot be empty.' })
   @MinLength(3, { message: 'Username must have atleast 3 characters.' })
-  @IsAlphanumeric(null, {
-    message: 'Username does not allow other than alpha numeric chars.',
-  })
   username: string;
 
-  @IsNotEmpty()
-  @IsEmail(null, { message: 'Please provide valid Email.' })
+  @IsEmail({}, { message: 'Invalid email format.' })
+  @IsNotEmpty({ message: 'Email cannot be empty.' })
   email: string;
 
   @IsInt()
   age: number;
 
-  @IsString()
   @IsEnum(['f', 'm', 'u'])
   gender: string;
 
-  @IsNotEmpty()
-  @Matches(passwordRegEx, {
-    message: `Password must contain Minimum 8 and maximum 20 characters, 
-      at least one uppercase letter, 
-      one lowercase letter, 
-      one number and 
-      one special character`,
-  })
+  @IsNotEmpty({ message: 'Password cannot be empty.' })
   password: string;
 
   readonly blogs: number[];

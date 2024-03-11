@@ -9,6 +9,13 @@ export class AuthService {
     private jwtService: JwtService,
   ) {}
 
+  /**
+   * Authenticate user based on provided credentials.
+   *
+   * @param {string} username - User's username.
+   * @param {string} pass - User's password.
+   * @returns {Promise<{ access_token: string }>} - JWT token for authenticated user.
+   */
   async signIn(
     username: string,
     pass: string,
@@ -23,6 +30,12 @@ export class AuthService {
     };
   }
 
+  /**
+   * Decode authentication token.
+   *
+   * @param {string} token - Authentication token.
+   * @returns {Promise<any>} - Decoded token.
+   */
   async decodeToken(token: string): Promise<any> {
     try {
       const decoded = await this.jwtService.verifyAsync(token);
