@@ -12,12 +12,15 @@ import {
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { plainToClass } from 'class-transformer';
+import { UsersResponseDto } from './dto/user-response.dto';
+import { SuccessMessageDto } from 'src/dto/success-message.dto';
 
-@Controller('user')
+@Controller('users')
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
-  // API URL - POST : /user
+  // API URL - POST : /users
   // Create user details
   // Request body shall contain
   //   1. name : string mandatory max length - 30
@@ -43,30 +46,37 @@ export class UserController {
   /**
    * Function create the user details
    * @param CreateUserDto
-   * @returns {Promise<User>}
+   * @returns {Promise<SuccessMessageDto>}
    */
   @Post()
   @HttpCode(201)
-  async create(@Body(new ValidationPipe()) createUserDto: CreateUserDto) {
-    return this.userService.createUser(createUserDto);
+  async createUser(
+    @Body(new ValidationPipe()) createUserDto: CreateUserDto,
+  ): Promise<SuccessMessageDto> {
+    await this.userService.createUser(createUserDto);
+    return { message: 'User created successfully' };
   }
 
   /**
-   * API URL- GET :/user
+   * API URL- GET :/users
    * Retrieve users details
    a. The system shall retrieve all the users details from the DB
    b. If there are no users in the DB, the system will display an empty array  */
   /**
    * Function retrieve user details
-   * @returns {Promise<User[]>}
+   * @returns {Promise<UsersResponseDto[]>}
    */
   @Get()
-  findAll() {
-    return this.userService.findAllUser();
+  async getAllUsers(): Promise<UsersResponseDto[]> {
+    const users = await this.userService.getAllUsers();
+    const usersResponse: UsersResponseDto[] = users.map((user) =>
+      plainToClass(UsersResponseDto, user),
+    );
+    return usersResponse;
   }
 
   /**
-   * API URL- GET :/user/:id
+   * API URL- GET :/users/:id
    * Retrieve user details of a particular user
    * Request query shall contain
   //   1. id : number 
@@ -83,12 +93,13 @@ export class UserController {
    * @returns {Promise<User[]>}
    */
   @Get(':id')
-  findOne(@Param('id') id: number) {
-    return this.userService.viewUser(+id);
+  async getUserByID(@Param('id') id: number): Promise<UsersResponseDto> {
+    const user = await this.userService.getUserByID(+id);
+    return plainToClass(UsersResponseDto, user);
   }
 
   /**
-   * API URL- PATCH :/user/:id
+   * API URL- PATCH :/users/:id
    * Update user details of a particular user
    * Request query shall contain
   //   1. id : number 
@@ -109,18 +120,18 @@ export class UserController {
   /**
    * Function retrieve user details
    * @param UpdateUserDto
-   * @returns {Promise<User[]>}
+   * @returns {SuccessMessageDto}
    */
   @Patch(':id')
-  update(
-    @Param('id') id: string,
+  async update(
+    @Param('id') id: number,
     @Body(new ValidationPipe()) updateUserDto: UpdateUserDto,
-  ) {
-    return this.userService.updateUser(+id, updateUserDto);
+  ): Promise<SuccessMessageDto> {
+    await this.userService.updateUser(id, updateUserDto);
+    return { message: 'User updated successfully' };
   }
-
   /**
-   * API URL- DELETE :/user/:id
+   * API URL- DELETE :/users/:id
    * Delete a particular user
    * Request query shall contain
   //   1. id : number 
@@ -137,27 +148,8 @@ export class UserController {
    * @returns {Promise<{ affected?: number }>}
    */
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.userService.removeUser(+id);
+  async removeUser(@Param('id') id: string): Promise<SuccessMessageDto> {
+    await this.userService.removeUser(+id);
+    return { message: 'User removed successfully' };
   }
-
-  /**
-   * API URL- GET :/user/blogs
-   * Retrieve blogs of a particular user
-   * Request query shall contain
-  //   1. userID : number 
-  // The system shall check following:
-  //   a. If no parameter is passed, then
-  //      the system shall return an error 'Enter userID'
-  //   b. If the above validation is passed, then
-  //        1. The system shall retrieve the blogs of the user with that userID.
-  //        2. If a user does not exist with that userID, then
-  //           the system will return an error 'User does not exist'
-  //        2. If the user has no blogs created, then
-  //           the system will return an error 'User has no blogs' */
-  /**
-   * Function retrieve user details
-   * @param {number} userID
-   * @returns {Promise<Blog[]>}
-   */
 }

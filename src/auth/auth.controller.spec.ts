@@ -1,5 +1,5 @@
 import { Test } from '@nestjs/testing';
-import { User } from 'src/user/entities/user.entity';
+import { User } from 'src/entities/user.entity';
 import { UserService } from 'src/user/user.service';
 
 it('can create an instance of user service', async () => {

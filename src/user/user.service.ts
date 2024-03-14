@@ -1,9 +1,10 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { User } from './entities/user.entity';
+import User from 'src/entities/user.entity';
+import { SuccessMessageDto } from 'src/dto/success-message.dto';
 
 @Injectable()
 export class UserService {
@@ -54,8 +55,12 @@ export class UserService {
    *
    * @returns {Promise<User[]>} - Array of user objects.
    */
-  findAllUser(): Promise<User[]> {
-    return this.userRepository.find();
+  async getAllUsers(): Promise<User[]> {
+    const users = await this.userRepository.find();
+    if (!users || users.length === 0) {
+      throw new NotFoundException('No users found');
+    }
+    return users;
   }
 
   /**
@@ -66,8 +71,12 @@ export class UserService {
    * @param {number} id - The ID of the user to be viewed.
    * @returns {Promise<User>} - User object corresponding to the provided ID.
    */
-  viewUser(id: number): Promise<User> {
-    return this.userRepository.findOneBy({ id });
+  async getUserByID(id: number): Promise<User> {
+    const user = await this.userRepository.findOneBy({ id });
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+    return user;
   }
 
   /**
@@ -86,13 +95,18 @@ export class UserService {
    * @param {UpdateUserDto} updateUserDto - Object containing updated user details.
    * @returns {Promise<User>} - Updated user object.
    */
-  updateUser(id: number, updateUserDto: UpdateUserDto): Promise<User> {
+  async updateUser(id: number, updateUserDto: UpdateUserDto): Promise<User> {
+    const userID = await this.userRepository.findOneBy({ id });
+    if (!userID) {
+      throw new NotFoundException('User not found');
+    }
     const user: User = new User();
     user.name = updateUserDto.name;
     user.age = updateUserDto.age;
     user.email = updateUserDto.email;
     user.username = updateUserDto.username;
     user.password = updateUserDto.password;
+    user.gender = updateUserDto.gender;
     user.id = id;
     return this.userRepository.save(user);
   }
@@ -105,19 +119,23 @@ export class UserService {
    * @param {number} id - The ID of the user to be removed.
    * @returns {Promise<{ affected?: number }>} - Object indicating the number of affected rows in the database.
    */
-  removeUser(id: number): Promise<{ affected?: number }> {
-    return this.userRepository.delete(id);
+  async removeUser(id: number): Promise<SuccessMessageDto> {
+    const result = await this.userRepository.delete(id);
+    if (result.affected === 0) {
+      throw new NotFoundException('User not found');
+    }
+    return { message: 'User removed' };
   }
 
   /**
-   * Function to find a user by username.
+   * Function to view user details by username.
    *
-   * System shall retrieve the user with the provided username.
+   * System shall retrieve user details by username.
    *
-   * @param {string} username - The username of the user to be found.
-   * @returns {Promise<User | undefined>} - User object corresponding to the provided username, or undefined if not found.
+   * @param {string} username - The username of the user to be viewed.
+   * @returns {Promise<User>} - User object corresponding to the provided ID.
    */
-  async findOne(username: string): Promise<User | undefined> {
+  async getUserByUsername(username: string): Promise<User | undefined> {
     return this.userRepository.findOne({ where: { username: username } });
   }
 }

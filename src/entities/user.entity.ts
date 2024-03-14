@@ -1,8 +1,8 @@
 import { Column, Entity, PrimaryGeneratedColumn, OneToMany } from 'typeorm';
-import { Blog } from '../../blogs/entities/blog.entity';
+import Blog from './blog.entity';
 
 @Entity()
-export class User {
+export default class Users {
   @PrimaryGeneratedColumn()
   id: number;
 
@@ -24,6 +24,6 @@ export class User {
   @Column({ type: 'enum', enum: ['m', 'f', 'u'] })
   gender: string;
 
-  @OneToMany(() => Blog, (blog) => blog.createdBy)
+  @OneToMany(() => Blog, (blog) => blog.author)
   blogs: Blog[];
 }

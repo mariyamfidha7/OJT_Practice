@@ -5,12 +5,12 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { JwtService } from '@nestjs/jwt';
+import { Pagination, paginate } from 'nestjs-typeorm-paginate';
 import { Repository } from 'typeorm';
 import { CreateBlogDto } from './dto/create-blog.dto';
 import { UpdateBlogDto } from './dto/update-blog.dto';
-import { Blog } from './entities/blog.entity';
-import { JwtService } from '@nestjs/jwt';
-import { Pagination, paginate } from 'nestjs-typeorm-paginate';
+import Blog from 'src/entities/blog.entity';
 
 @Injectable()
 export class BlogsService {
@@ -34,7 +34,7 @@ export class BlogsService {
     const blog: Blog = new Blog();
     blog.title = createBlogDto.title;
     blog.description = createBlogDto.description;
-    blog.createdBy = decodedToken.sub;
+    blog.author = decodedToken.sub;
     blog.tags = createBlogDto.tags;
     return this.blogRepository.save(blog);
   }
@@ -45,21 +45,26 @@ export class BlogsService {
    * @param {number} offset - Offset value for pagination.
    * @returns {Promise<Pagination<Blog>>} - Paginated list of blog posts.
    */
-  async findAllBlog(offset: number): Promise<Pagination<Blog>> {
+  async getAllBlog(limit: number, offset: number): Promise<Pagination<Blog>> {
     if (offset === undefined || isNaN(offset)) {
       throw new BadRequestException('Missing or invalid offset value');
     }
-    let skip: number = 0;
-    if (offset) {
-      skip = offset;
-    }
 
     const paginationOptions = {
-      limit: 3,
-      page: Math.floor(skip / 3) + 1,
+      limit: limit,
+      page: Math.floor(offset / limit) + 1,
     };
 
-    return await paginate<Blog>(this.blogRepository, paginationOptions);
+    const paginationResult: Pagination<Blog> = await paginate<Blog>(
+      this.blogRepository,
+      paginationOptions,
+    );
+
+    if (paginationResult.items.length === 0) {
+      throw new NotFoundException('No blogs found');
+    }
+
+    return paginationResult;
   }
 
   /**
@@ -68,8 +73,12 @@ export class BlogsService {
    * @param {number} id - ID of the blog post to retrieve.
    * @returns {Promise<Blog>} - Blog post object.
    */
-  viewBlog(id: number): Promise<Blog> {
-    return this.blogRepository.findOne({ where: { id } });
+  async getBlogByID(id: number): Promise<Blog> {
+    const blog = await this.blogRepository.findOne({ where: { id } });
+    if (!blog) {
+      throw new NotFoundException('Blog does not exist');
+    }
+    return blog;
   }
 
   /**
@@ -99,7 +108,7 @@ export class BlogsService {
       throw new NotFoundException('Blog not found');
     }
 
-    if (blog.createdBy.id !== decodedToken.sub) {
+    if (blog.author.id !== decodedToken.sub) {
       throw new UnauthorizedException(
         'You are not authorized to update this blog',
       );
@@ -122,7 +131,7 @@ export class BlogsService {
    * @param {string} token - Authentication token.
    * @returns {Promise<{ affected?: number }>} - Object indicating the number of affected rows in the database.
    */
-  async removeBlog(id: number, token: string): Promise<{ affected?: number }> {
+  async deleteBlog(id: number, token: string): Promise<{ affected?: number }> {
     const decodedToken = await this.decodeToken(token);
     if (!decodedToken.sub) {
       throw new UnauthorizedException('Invalid token');
@@ -137,32 +146,13 @@ export class BlogsService {
       throw new NotFoundException('Blog not found');
     }
 
-    if (blog.createdBy.id !== decodedToken.sub) {
+    if (blog.author.id !== decodedToken.sub) {
       throw new UnauthorizedException(
         'You are not authorized to delete this blog',
       );
     }
 
     return this.blogRepository.delete(id);
-  }
-
-  /**
-   * Retrieve a blog post by title.
-   *
-   * @param {string} title - Title of the blog post to retrieve.
-   * @returns {Promise<Blog | undefined>} - Blog post object.
-   */
-  async findOne(title: string): Promise<Blog | undefined> {
-    return this.blogRepository.findOne({ where: { title: title } });
-  }
-
-  /**
-   * Retrieve all blog posts.
-   *
-   * @returns {Promise<Blog[]>} - Array of blog posts.
-   */
-  async getAllBlogs(): Promise<Blog[]> {
-    return this.blogRepository.find();
   }
 
   /**

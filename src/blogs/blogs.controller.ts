@@ -9,18 +9,24 @@ import {
   UseGuards,
   Req,
   ValidationPipe,
+  Query,
 } from '@nestjs/common';
 import { BlogsService } from './blogs.service';
 import { CreateBlogDto } from './dto/create-blog.dto';
 import { AuthGuard } from 'src/auth/auth.guard';
 import { UpdateBlogDto } from './dto/update-blog.dto';
+import { BlogResponseDto } from './dto/blog-response.dto';
+import { SuccessMessageDto } from 'src/dto/success-message.dto';
+import Blogs from 'src/entities/blog.entity';
+import { Pagination } from 'nestjs-typeorm-paginate';
+import { plainToClass } from 'class-transformer';
 
-@Controller('blog')
+@Controller('blogs')
 export class BlogsController {
   constructor(private readonly blogService: BlogsService) {}
 
   /**
-   * API URL: POST /blog
+   * API URL: POST /blogs
    *
    * Create blog post.
    *
@@ -45,13 +51,17 @@ export class BlogsController {
    */
   @UseGuards(AuthGuard)
   @Post()
-  create(@Body(new ValidationPipe()) createBlogDto: CreateBlogDto, @Req() req) {
+  async createBlog(
+    @Body(new ValidationPipe()) createBlogDto: CreateBlogDto,
+    @Req() req,
+  ): Promise<SuccessMessageDto> {
     const token = req.headers.authorization.split(' ')[1];
-    return this.blogService.createBlog(createBlogDto, token);
+    await this.blogService.createBlog(createBlogDto, token);
+    return { message: 'Blog created successfully' };
   }
 
   /**
-   * API URL: GET /blog/:offset/offset
+   * API URL: GET /blogs/:offset/offset
    *
    * Retrieve a list of blog posts starting from the specified offset.
    *
@@ -68,13 +78,21 @@ export class BlogsController {
    * @returns {Promise<Blog[]>} - Array of blog posts.
    */
 
-  @Get(':offset/offset')
-  findAll(@Param('offset') offset: number) {
-    return this.blogService.findAllBlog(+offset);
+  @Get()
+  async getAllBlogs(
+    @Query('limit') limit: number = 3,
+    @Query('offset') offset: number = 0,
+  ): Promise<BlogResponseDto[]> {
+    const paginationResult: Pagination<Blogs> =
+      await this.blogService.getAllBlog(limit, offset);
+    const blogs: Blogs[] = paginationResult.items;
+    const blogResponseDtos: BlogResponseDto[] = blogs.map((blog) =>
+      plainToClass(BlogResponseDto, blog),
+    );
+    return blogResponseDtos;
   }
-
   /**
-   * API URL: GET /blog/:id
+   * API URL: GET /blogs/:id
    *
    * Retrieve details of a blog post by ID.
    *
@@ -92,12 +110,13 @@ export class BlogsController {
    * @returns {Promise<Blog>} - Blog post object.
    */
   @Get(':id')
-  findOne(@Param('id') id: number) {
-    return this.blogService.viewBlog(+id);
+  async getBlogByID(@Param('id') id: number): Promise<BlogResponseDto> {
+    const blog = await this.blogService.getBlogByID(+id);
+    return plainToClass(BlogResponseDto, blog);
   }
 
   /**
-   * API URL: PATCH /blog/:id
+   * API URL: PATCH /blogs/:id
    *
    * Update a blog post by ID.
    *
@@ -120,19 +139,19 @@ export class BlogsController {
    * @param {Request} req - Request object containing headers for authentication.
    * @returns {Promise<Blog>} - Updated blog post object.
    */
-  @UseGuards(AuthGuard)
   @Patch(':id')
-  update(
+  async updateBlog(
     @Param('id') id: string,
     @Body(new ValidationPipe()) updateBlogDto: UpdateBlogDto,
     @Req() req,
-  ) {
+  ): Promise<SuccessMessageDto> {
     const token = req.headers.authorization.split(' ')[1];
-    return this.blogService.updateBlog(+id, updateBlogDto, token);
+    await this.blogService.updateBlog(+id, updateBlogDto, token);
+    return { message: 'Blog updated successfully' };
   }
 
   /**
-   * API URL: DELETE /blog/:id
+   * API URL: DELETE /blogs/:id
    *
    * Remove a blog post by ID.
    *
@@ -152,8 +171,12 @@ export class BlogsController {
    */
   @UseGuards(AuthGuard)
   @Delete(':id')
-  remove(@Param('id') id: string, @Req() req) {
+  async deleteBlog(
+    @Param('id') id: string,
+    @Req() req,
+  ): Promise<SuccessMessageDto> {
     const token = req.headers.authorization.split(' ')[1];
-    return this.blogService.removeBlog(+id, token);
+    await this.blogService.deleteBlog(+id, token);
+    return { message: 'Blog removed successfully' };
   }
 }

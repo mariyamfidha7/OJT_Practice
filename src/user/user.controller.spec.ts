@@ -1,6 +1,6 @@
 import { Test } from '@nestjs/testing';
 import { UserService } from './user.service';
-import { Blog } from 'src/blogs/entities/blog.entity';
+import { Blog } from 'src/entities/blog.entity';
 
 it('can create an instance of user service', async () => {
   const fakeUsersService = {
