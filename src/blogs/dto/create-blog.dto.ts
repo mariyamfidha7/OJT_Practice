@@ -1,15 +1,14 @@
 import { IsNotEmpty, IsString } from 'class-validator';
 
 export class CreateBlogDto {
-  @IsString()
-  @IsNotEmpty()
+  @IsString({ message: 'Title should be a string.' })
+  @IsNotEmpty({ message: 'Title cannot be empty.' })
   title: string;
 
-  @IsNotEmpty()
-  username: string;
-
-  @IsNotEmpty()
+  @IsNotEmpty({ message: 'Description cannot be empty.' })
   description: string;
 
-  readonly userID: number;
+  @IsString({ message: 'Tag should be a string.' })
+  @IsNotEmpty({ message: 'Tag cannot be empty.' })
+  tags: string;
 }

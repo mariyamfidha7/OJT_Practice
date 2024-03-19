@@ -3,12 +3,10 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { UserModule } from './user/user.module';
-import { User } from './user/entities/user.entity';
 import { AuthModule } from './auth/auth.module';
 import { BlogsModule } from './blogs/blogs.module';
-import { Blog } from './blogs/entities/blog.entity';
-import { TagsModule } from './tags/tags.module';
-import { Tag } from './tags/entities/tag.entity';
+import User from './entities/user.entity';
+import Blog from './entities/blog.entity';
 
 @Module({
   imports: [
@@ -18,7 +16,7 @@ import { Tag } from './tags/entities/tag.entity';
       port: 5432,
       password: 'admin',
       username: 'postgres',
-      entities: [User, Blog, Tag],
+      entities: [User, Blog],
       database: 'Blog',
       synchronize: true,
       logging: true,
@@ -26,7 +24,6 @@ import { Tag } from './tags/entities/tag.entity';
     UserModule,
     AuthModule,
     BlogsModule,
-    TagsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

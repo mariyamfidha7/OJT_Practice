@@ -18,7 +18,6 @@ export class AuthGuard implements CanActivate {
     }
     try {
       const payload = await this.authService.decodeToken(token);
-      // Assign the payload to the request object here
       request['user'] = payload;
     } catch {
       throw new UnauthorizedException();

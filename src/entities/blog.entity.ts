@@ -3,14 +3,12 @@ import {
   PrimaryGeneratedColumn,
   Column,
   ManyToOne,
-  ManyToMany,
-  JoinTable,
+  JoinColumn,
 } from 'typeorm';
-import { User } from 'src/user/entities/user.entity';
-import { Tag } from 'src/tags/entities/tag.entity';
+import User from './user.entity';
 
 @Entity()
-export class Blog {
+export default class Blogs {
   @PrimaryGeneratedColumn()
   id: number;
 
@@ -20,10 +18,10 @@ export class Blog {
   @Column()
   description: string;
 
-  @ManyToOne(() => User, (user) => user.blogs)
-  createdBy: User;
+  @Column()
+  tags: string;
 
-  @ManyToMany(() => Tag)
-  @JoinTable()
-  tags: Tag[];
+  @ManyToOne(() => User, (user) => user.blogs)
+  @JoinColumn({ name: 'author_id' })
+  author: User;
 }
